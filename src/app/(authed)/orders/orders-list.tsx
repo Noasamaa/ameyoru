@@ -11,7 +11,6 @@ import {
   RotateCcw,
   Tag,
   XCircle,
-  ZoomIn,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -553,7 +552,7 @@ function OrderDetailSheet({
                       <span>陪玩收款码</span>
                       <span>点击二维码可放大</span>
                     </div>
-                    <div className="grid gap-3">
+                    <div className="space-y-3">
                       {order.playerWechatQrPath && (
                         <QrThumbnail
                           label="微信收款码"
@@ -797,12 +796,10 @@ function QrThumbnail({ label, path }: { label: string; path: string }) {
       <button
         type="button"
         onClick={() => setZoomed(true)}
-        className="group w-full rounded-lg border bg-card p-2 text-left transition hover:border-primary/60 hover:bg-accent/40"
-        title="点击放大,方便扫码"
+        className="w-full rounded-lg border bg-card p-2 text-left transition-colors hover:border-primary/60 hover:bg-accent/40"
       >
-        <div className="mb-1.5 flex items-center justify-center gap-1 text-[11px] text-muted-foreground">
+        <div className="mb-1.5 text-center text-[11px] text-muted-foreground">
           {label}
-          <ZoomIn className="size-3 opacity-60 transition group-hover:opacity-100" />
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -812,7 +809,7 @@ function QrThumbnail({ label, path }: { label: string; path: string }) {
         />
       </button>
       <Dialog open={zoomed} onOpenChange={setZoomed}>
-        <DialogContent className="max-w-md">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-center">{label}</DialogTitle>
             <DialogDescription className="text-center">
@@ -823,7 +820,7 @@ function QrThumbnail({ label, path }: { label: string; path: string }) {
           <img
             src={src}
             alt={label}
-            className="mx-auto aspect-square w-full rounded-lg object-contain"
+            className="mx-auto max-h-[70vh] w-full rounded-lg object-contain"
           />
         </DialogContent>
       </Dialog>
