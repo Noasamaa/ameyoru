@@ -11,6 +11,7 @@ import {
   RotateCcw,
   Tag,
   XCircle,
+  ZoomIn,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -130,12 +131,10 @@ function rowPayoutCents(o: OrderRow): number {
 
 export function OrdersList({
   role,
-  myId,
   orders,
   initialOpenId,
 }: {
   role: Role;
-  myId: string;
   orders: OrderRow[];
   initialOpenId?: string | null;
 }) {
@@ -298,7 +297,6 @@ export function OrdersList({
       <OrderDetailSheet
         order={openOrder}
         role={role}
-        myId={myId}
         onClose={() => setOpenId(null)}
       />
     </>
@@ -308,12 +306,10 @@ export function OrdersList({
 function OrderDetailSheet({
   order,
   role,
-  myId,
   onClose,
 }: {
   order: OrderRow | null;
   role: Role;
-  myId: string;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -553,10 +549,11 @@ function OrderDetailSheet({
 
                 {showQrInContent && (
                   <div className="space-y-2">
-                    <div className="text-xs text-muted-foreground">
-                      陪玩收款码
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>陪玩收款码</span>
+                      <span>点击二维码可放大</span>
                     </div>
-                    <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="grid gap-3">
                       {order.playerWechatQrPath && (
                         <QrThumbnail
                           label="微信收款码"
@@ -578,7 +575,6 @@ function OrderDetailSheet({
                 order={order}
                 canManage={canManage}
                 canBoss={canBoss}
-                isOwnOrder={order.playerId === myId}
                 pending={pending}
                 onComplete={() =>
                   run(
@@ -647,7 +643,6 @@ function ActionBar({
   order,
   canManage,
   canBoss,
-  isOwnOrder,
   pending,
   onComplete,
   onOpenCancel,
@@ -658,7 +653,6 @@ function ActionBar({
   order: OrderRow;
   canManage: boolean;
   canBoss: boolean;
-  isOwnOrder: boolean;
   pending: boolean;
   onComplete: () => void;
   onOpenCancel: () => void;
@@ -667,16 +661,13 @@ function ActionBar({
   onUnsettle: () => void;
 }) {
   if (order.orderStatus === "IN_PROGRESS") {
-    const canComplete = canManage || isOwnOrder;
-    if (!canComplete) return null;
+    if (!canManage) return null;
     return (
       <div className="border-t px-6 py-4 space-y-2">
-        {canComplete && (
-          <Button className="w-full" onClick={onComplete} disabled={pending}>
-            {pending ? <Loader2 className="animate-spin" /> : <CheckCircle2 />}
-            标记已完成
-          </Button>
-        )}
+        <Button className="w-full" onClick={onComplete} disabled={pending}>
+          {pending ? <Loader2 className="animate-spin" /> : <CheckCircle2 />}
+          标记已完成
+        </Button>
         {canManage && (
           <Button
             variant="outline"
@@ -799,18 +790,44 @@ function DetailRow({
 }
 
 function QrThumbnail({ label, path }: { label: string; path: string }) {
+  const [zoomed, setZoomed] = useState(false);
+  const src = `/api/uploads/${path}`;
   return (
-    <div className="rounded-lg border bg-card p-2">
-      <div className="mb-1.5 text-center text-[11px] text-muted-foreground">
-        {label}
-      </div>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={`/api/uploads/${path}`}
-        alt={label}
-        className="aspect-square w-full rounded object-contain"
-      />
-    </div>
+    <>
+      <button
+        type="button"
+        onClick={() => setZoomed(true)}
+        className="group w-full rounded-lg border bg-card p-2 text-left transition hover:border-primary/60 hover:bg-accent/40"
+        title="点击放大,方便扫码"
+      >
+        <div className="mb-1.5 flex items-center justify-center gap-1 text-[11px] text-muted-foreground">
+          {label}
+          <ZoomIn className="size-3 opacity-60 transition group-hover:opacity-100" />
+        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={label}
+          className="aspect-square w-full rounded object-contain"
+        />
+      </button>
+      <Dialog open={zoomed} onOpenChange={setZoomed}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">{label}</DialogTitle>
+            <DialogDescription className="text-center">
+              用手机扫码向陪玩打款
+            </DialogDescription>
+          </DialogHeader>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt={label}
+            className="mx-auto aspect-square w-full rounded-lg object-contain"
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
